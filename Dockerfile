@@ -18,6 +18,6 @@ RUN xcaddy build \
 
 FROM caddy:${CADDY_VERSION}
 
-LABEL org.opencontainers.image.source = "https://github.com/stefannitsche/caddy"
+LABEL org.opencontainers.image.source="https://github.com/stefannitsche/caddy"
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
