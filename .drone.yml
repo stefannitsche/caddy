@@ -1,0 +1,66 @@
+kind: pipeline
+name: default
+workspace:
+  path: /drone/src
+
+steps:
+  - name: fetch Caddy version
+    image: alpine
+    commands:
+      - apk add --no-cache curl
+      - >
+        sh -c "CADDY_VERSION=$(curl --silent \"https://api.github.com/repos/caddyserver/caddy/releases/latest\" | grep '\"tag_name\":' | sed -E 's/.*\"([^\"]+)\".*/\1/' | sed 's/^v//') && \
+        echo CADDY_VERSION=\$CADDY_VERSION &&
+        echo CADDY_VERSION=\$CADDY_VERSION > build.env"
+
+  - name: debug and load env
+    image: alpine
+    environment:
+      from_file: /drone/src/build.env
+    commands:
+      - env
+      - source build.env
+      - echo "Caddy version is $CADDY_VERSION"
+      - echo "CADDY_VERSION=${CADDY_VERSION}" >> /drone/src/.drone.env
+
+#  - name: build and push to GHCR
+#    image: plugins/docker
+#    environment:
+#      from_file: /drone/src/build.env
+#    settings:
+#      registry: ghcr.io
+#      username: stefannitsche
+#      password:
+#        from_secret: github_registry
+#      repo: ghcr.io/stefannitsche/beets
+#      build_args_from_env:
+#        - BEETS_VERSION
+#      tags:
+#        - latest
+#        - ${BEETS_VERSION}
+#        - ${BEETS_VERSION}.${DRONE_BUILD_NUMBER}
+#      purge: true
+#      pull_image: true
+#      no_cache: true
+
+  - name: build and push to GHCR
+    image: docker:cli
+    environment:
+      GITHUB_REGISTRY:
+        from_secret: github_registry
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - echo "Reading CADDY_VERSION from build.env"
+      - source build.env
+      - echo "Using CADDY_VERSION=$CADDY_VERSION"
+      - docker build --rm=true --pull --no-cache --build-arg CADDY_VERSION=$CADDY_VERSION -t ghcr.io/stefannitsche/caddy:latest -t ghcr.io/stefannitsche/caddy:$CADDY_VERSION .
+      - echo "$GITHUB_REGISTRY" | docker login ghcr.io -u stefannitsche --password-stdin
+      - docker push ghcr.io/stefannitsche/caddy:latest
+      - docker push ghcr.io/stefannitsche/caddy:$CADDY_VERSION
+
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
