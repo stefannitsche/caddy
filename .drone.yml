@@ -8,10 +8,15 @@ steps:
     image: alpine
     commands:
       - apk add --no-cache curl
-      - >
-        sh -c "CADDY_VERSION=$(curl --silent \"https://api.github.com/repos/caddyserver/caddy/releases/latest\" | grep '\"tag_name\":' | sed -E 's/.*\"([^\"]+)\".*/\1/' | sed 's/^v//') && \
-        echo CADDY_VERSION=\$CADDY_VERSION &&
-        echo CADDY_VERSION=\$CADDY_VERSION > build.env"
+      - |
+        CADDY_VERSION=$(curl --fail --silent --show-error \
+        "https://api.github.com/repos/caddyserver/caddy/releases/latest" \
+        | grep '"tag_name":' \
+        | sed -E 's/.*"([^"]+)".*/\1/' \
+        | sed 's/^v//')
+        test -n "$CADDY_VERSION" || exit 1
+        echo "CADDY_VERSION=$CADDY_VERSION"
+        echo "CADDY_VERSION=$CADDY_VERSION" > build.env
 
   - name: debug and load env
     image: alpine
