@@ -287,7 +287,7 @@ handle @banned {
 }
 ```
 
-The right place for it depends on your setup, but you can find more complete examples in the [examples/](https://github.com/Javex/caddy-fail2ban/examples/) directory.
+The right place for it depends on your setup, but you can find more complete examples in the [examples/](https://github.com/Javex/caddy-fail2ban/tree/main/examples/) directory.
 
 Next, you will need to create the fail2ban action. You can copy the suggested one if you like:
 
@@ -443,7 +443,7 @@ Bouncers are pieces of software that perform specific actions based on the decis
 #### Crowdsec Module Usage
 
 > [!TIP]
-> You can find full setup examples at [`examples`](https://github.com/hslatman/caddy-crowdsec-bouncer/examples)
+> You can find full setup examples at [`examples`](https://github.com/hslatman/caddy-crowdsec-bouncer/tree/main/examples)
 
 You can use the bouncer by either building a custom Caddy image with Docker or by fetching the required Go modules directly into your own build.
 
